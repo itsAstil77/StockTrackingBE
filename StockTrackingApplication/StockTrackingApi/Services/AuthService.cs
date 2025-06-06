@@ -40,8 +40,8 @@ public class AuthService
             UserName = request.UserName,
             Email = request.Email,
             Password = hashedPassword,
-            OTP = "",
-            OTPExpiry = DateTime.UtcNow
+            // OTP = "",
+            // OTPExpiry = DateTime.UtcNow
         };
 
         await _users.InsertOneAsync(newUser);
@@ -58,55 +58,46 @@ public class AuthService
     }
 
     public async Task<ServiceResult<string>> LoginAsync(string email, string password)
-    {
-        var user = await _users.Find(u => u.Email == email).FirstOrDefaultAsync();
-        if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
-            return ServiceResult<string>.ErrorResult("Invalid credentials");
+{
+    var user = await _users.Find(u => u.Email == email).FirstOrDefaultAsync();
+    if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
+        return ServiceResult<string>.ErrorResult("Invalid credentials");
 
-        var otp = new Random().Next(1000, 9999).ToString();
-        user.OTP = otp;
-        user.OTPExpiry = DateTime.UtcNow.AddMinutes(1);
-        await _users.ReplaceOneAsync(u => u.Id == user.Id, user);
+    return ServiceResult<string>.SuccessResult(null, "Login successful");
+}
 
-        await _emailService.SendEmailAsync(
-            email,
-            "Your OTP Code",
-            $"Your one-time password is: <b>{otp}</b>. It is valid for 1 minute.");
 
-        return ServiceResult<string>.SuccessResult(null, "OTP sent to email");
-    }
+    // public async Task<ServiceResult<string>> VerifyOtpAsync(string email, string otp)
+    // {
+    //     var user = await _users.Find(u => u.Email == email).FirstOrDefaultAsync();
+    //     if (user == null)
+    //         return ServiceResult<string>.ErrorResult("User not found");
 
-    public async Task<ServiceResult<string>> VerifyOtpAsync(string email, string otp)
-    {
-        var user = await _users.Find(u => u.Email == email).FirstOrDefaultAsync();
-        if (user == null)
-            return ServiceResult<string>.ErrorResult("User not found");
+    //     if (user.OTP != otp)
+    //         return ServiceResult<string>.ErrorResult("Invalid OTP");
 
-        if (user.OTP != otp)
-            return ServiceResult<string>.ErrorResult("Invalid OTP");
+    //     if (user.OTPExpiry < DateTime.UtcNow)
+    //         return ServiceResult<string>.ErrorResult("OTP expired");
 
-        if (user.OTPExpiry < DateTime.UtcNow)
-            return ServiceResult<string>.ErrorResult("OTP expired");
+    //     return ServiceResult<string>.SuccessResult(null, "OTP verified successfully");
+    // }
 
-        return ServiceResult<string>.SuccessResult(null, "OTP verified successfully");
-    }
+    // public async Task<ServiceResult<string>> ResendOtpAsync(string email)
+    // {
+    //     var user = await _users.Find(u => u.Email == email).FirstOrDefaultAsync();
+    //     if (user == null)
+    //         return ServiceResult<string>.ErrorResult("User not found");
 
-    public async Task<ServiceResult<string>> ResendOtpAsync(string email)
-    {
-        var user = await _users.Find(u => u.Email == email).FirstOrDefaultAsync();
-        if (user == null)
-            return ServiceResult<string>.ErrorResult("User not found");
+    //     var otp = new Random().Next(1000, 9999).ToString();
+    //     user.OTP = otp;
+    //     user.OTPExpiry = DateTime.UtcNow.AddMinutes(1);
+    //     await _users.ReplaceOneAsync(u => u.Id == user.Id, user);
 
-        var otp = new Random().Next(1000, 9999).ToString();
-        user.OTP = otp;
-        user.OTPExpiry = DateTime.UtcNow.AddMinutes(1);
-        await _users.ReplaceOneAsync(u => u.Id == user.Id, user);
+    //     await _emailService.SendEmailAsync(
+    //         email,
+    //         "Your OTP Code",
+    //         $"Your one-time password is: <b>{otp}</b>. It is valid for 1 minute.");
 
-        await _emailService.SendEmailAsync(
-            email,
-            "Your OTP Code",
-            $"Your one-time password is: <b>{otp}</b>. It is valid for 1 minute.");
-
-        return ServiceResult<string>.SuccessResult(null, "OTP resent");
-    }
+    //     return ServiceResult<string>.SuccessResult(null, "OTP resent");
+    // }
 }

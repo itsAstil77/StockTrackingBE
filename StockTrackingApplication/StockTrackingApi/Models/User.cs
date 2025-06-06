@@ -13,8 +13,8 @@ namespace StockTrackingAuthAPI.Models
         public string Email { get; set; } = "";
         public string Password { get; set; } = "";
         public List<string> AssignedRoles { get; set; } = new List<string>();
-        public string OTP { get; set; } = "";
-        public DateTime OTPExpiry { get; set; }
+       // public string OTP { get; set; } = "";
+        //public DateTime OTPExpiry { get; set; }
     }
 
     public class CreateUserRequest

@@ -35,40 +35,41 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request)
-    {
-        var result = await _authService.LoginAsync(request.Email, request.Password);
-        if (!result.Success)
-            return Unauthorized(new { message = result.Message });
+public async Task<IActionResult> Login([FromBody] LoginRequest request)
+{
+    var result = await _authService.LoginAsync(request.Email, request.Password);
+    if (!result.Success)
+        return Unauthorized(new { message = result.Message });
 
-        return Ok(new { message = result.Message });
-    }
+    return Ok(new { message = result.Message });
+}
 
-    [HttpPost("verify-otp")]
-    public async Task<IActionResult> VerifyOtp([FromBody] OTPRequest request)
-    {
-        var result = await _authService.VerifyOtpAsync(request.Email, request.OTP);
-        if (!result.Success)
-        {
-            return result.Message switch
-            {
-                "User not found" => NotFound(new { message = result.Message }),
-                "Invalid OTP" => BadRequest(new { message = result.Message }),
-                "OTP expired" => BadRequest(new{message=result.Message}),
-                _ => BadRequest(new { message = result.Message })
-            };
-        }
 
-        return Ok(new { message = result.Message });
-    }
+    // [HttpPost("verify-otp")]
+    // public async Task<IActionResult> VerifyOtp([FromBody] OTPRequest request)
+    // {
+    //     var result = await _authService.VerifyOtpAsync(request.Email, request.OTP);
+    //     if (!result.Success)
+    //     {
+    //         return result.Message switch
+    //         {
+    //             "User not found" => NotFound(new { message = result.Message }),
+    //             "Invalid OTP" => BadRequest(new { message = result.Message }),
+    //             "OTP expired" => BadRequest(new{message=result.Message}),
+    //             _ => BadRequest(new { message = result.Message })
+    //         };
+    //     }
 
-    [HttpPost("resend-otp")]
-    public async Task<IActionResult> ResendOtp([FromBody] OTPRequest request)
-    {
-        var result = await _authService.ResendOtpAsync(request.Email);
-        if (!result.Success)
-            return NotFound(new { message = result.Message });
+    //     return Ok(new { message = result.Message });
+    // }
 
-        return Ok(new { message = result.Message });
-    }
+    // [HttpPost("resend-otp")]
+    // public async Task<IActionResult> ResendOtp([FromBody] OTPRequest request)
+    // {
+    //     var result = await _authService.ResendOtpAsync(request.Email);
+    //     if (!result.Success)
+    //         return NotFound(new { message = result.Message });
+
+    //     return Ok(new { message = result.Message });
+    // }
 }
