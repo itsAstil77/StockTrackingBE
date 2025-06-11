@@ -15,7 +15,7 @@ namespace AssetTrackingAuthAPI.Controllers
             _userService = userService;
         }
 
-        [HttpGet("get-all")]
+        [HttpGet("UserSummary")]
         public async Task<IActionResult> GetAll()
         {
             var users = await _userService.GetAllAsync();

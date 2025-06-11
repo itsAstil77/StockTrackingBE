@@ -46,9 +46,32 @@ namespace StockTrackingAuthAPI.Controllers
             var excelBytes = await _excelService.ExportDataToExcelAsync(startDate, endDate);
 
             // Return file as downloadable Excel (.xlsx)
-            return File(excelBytes, 
-                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+            return File(excelBytes,
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         $"Export_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}.xlsx");
         }
+        
+        [HttpGet("ItemMasterSummary")]
+public async Task<IActionResult> GetAllExcelData()
+{
+    var data = await _excelService.GetAllDataAsync();
+    return Ok(data);
+}
+[HttpPost("StockUpload")]
+[Consumes("multipart/form-data")]
+public async Task<IActionResult> UploadExcelWithoutDuplicationCheck([FromForm] ExcelUploadRequest request)
+{
+    var (isSuccess, message, inserted) = await _excelService.ProcessExcelFileWithoutDuplicationCheckAsync(request.File);
+
+    if (!isSuccess)
+        return BadRequest(new { message });
+
+    return Ok(new
+    {
+        message,
+        inserted
+    });
+}
+
     }
 }

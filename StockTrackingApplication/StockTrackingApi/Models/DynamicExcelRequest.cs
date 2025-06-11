@@ -8,17 +8,27 @@ namespace StockTrackingAuthAPI.Models
     public class ExcelData
     {
         [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string? Id { get; set; }
+
+    [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+    public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+    public string? Barcode { get; set; }
+
+    [BsonExtraElements] // Handles additional unknown fields
+    public Dictionary<string, object> AdditionalFields { get; set; } = new();
+    }
+    public class ExcelData1
+    {
+        [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string? Id { get; set; }
+        public string Id { get; set; }
 
-        [BsonElement("Barcode")]
-        public string Barcode { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
 
-        [BsonElement("CreatedDate")]
-        [BsonDateTimeOptions(Kind = DateTimeKind.Local)] // Optional: ensures consistent timezone handling
-        public DateTime CreatedDate { get; set; }
-
-     [BsonExtraElements]
-        public Dictionary<string, object> AdditionalFields { get; set; } = new();
+        // This dictionary stores any additional or dynamic fields from the Excel file
+        [BsonExtraElements]
+        public Dictionary<string, object> AdditionalFields { get; set; }
     }
 }

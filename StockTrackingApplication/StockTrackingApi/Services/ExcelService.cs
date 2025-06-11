@@ -12,10 +12,16 @@ namespace StockTrackingAuthAPI.Services
     public class ExcelService
     {
         private readonly IMongoCollection<ExcelData> _collection;
+        private readonly IMongoCollection<ExcelData1> _StockCount;
 
         public ExcelService(IMongoDatabase database)
         {
             _collection = database.GetCollection<ExcelData>("ExcelData");
+            _StockCount = database.GetCollection<ExcelData1>("StockCount");
+        }
+        public async Task<List<ExcelData>> GetAllDataAsync()
+        {
+            return await _collection.Find(Builders<ExcelData>.Filter.Empty).ToListAsync();
         }
 
         // Upload Excel and save data to MongoDB
@@ -95,12 +101,12 @@ namespace StockTrackingAuthAPI.Services
         public async Task<byte[]> ExportDataToExcelAsync(DateTime startDate, DateTime endDate)
         {
             // Filter by CreatedDate between startDate and endDate (inclusive)
-            var filter = Builders<ExcelData>.Filter.And(
-                Builders<ExcelData>.Filter.Gte(x => x.CreatedDate, startDate),
-                Builders<ExcelData>.Filter.Lte(x => x.CreatedDate, endDate)
+            var filter = Builders<ExcelData1>.Filter.And(
+                Builders<ExcelData1>.Filter.Gte(x => x.CreatedDate, startDate),
+                Builders<ExcelData1>.Filter.Lte(x => x.CreatedDate, endDate.AddDays(1))
             );
 
-            var data = await _collection.Find(filter).ToListAsync();
+            var data = await _StockCount.Find(filter).ToListAsync();
 
             using var package = new ExcelPackage();
             var worksheet = package.Workbook.Worksheets.Add("DataExport");
@@ -144,7 +150,7 @@ namespace StockTrackingAuthAPI.Services
                         object? val = header switch
                         {
                             "Id" => doc.Id,
-                            "Barcode" => doc.Barcode,
+                           // "Barcode" => doc.Barcode,
                             "CreatedDate" => doc.CreatedDate.ToString("yyyy-MM-dd HH:mm:ss"),
                             _ => doc.AdditionalFields != null && doc.AdditionalFields.ContainsKey(header) ? doc.AdditionalFields[header]?.ToString() : null
                         };
@@ -158,5 +164,62 @@ namespace StockTrackingAuthAPI.Services
 
             return package.GetAsByteArray();
         }
+       public async Task<(bool IsSuccess, string Message, int Inserted)> ProcessExcelFileWithoutDuplicationCheckAsync(IFormFile file)
+{
+    if (file == null || file.Length == 0)
+        return (false, "No file uploaded", 0);
+
+    try
+    {
+        using var stream = new MemoryStream();
+        await file.CopyToAsync(stream);
+        using var package = new ExcelPackage(stream);
+
+        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+        if (worksheet == null || worksheet.Dimension == null)
+            return (false, "Excel file has no worksheet or is empty.", 0);
+
+        int rowCount = worksheet.Dimension.Rows;
+        int colCount = worksheet.Dimension.Columns;
+
+        var headers = new List<string>();
+        for (int col = 1; col <= colCount; col++)
+        {
+            headers.Add(worksheet.Cells[1, col].Text);
+        }
+
+        int inserted = 0;
+
+        for (int row = 2; row <= rowCount; row++)
+        {
+            var rowDict = new Dictionary<string, object>();
+
+            for (int col = 1; col <= colCount; col++)
+            {
+                string key = headers[col - 1];
+                string value = worksheet.Cells[row, col].Text;
+
+                rowDict[key] = value;
+            }
+
+            var doc = new ExcelData1
+            {
+                //CreatedDate = DateTime.Now,
+                AdditionalFields = rowDict
+            };
+
+            await _StockCount.InsertOneAsync(doc);
+            inserted++;
+        }
+
+        return (true, "File processed and saved successfully", inserted);
+    }
+    catch (Exception ex)
+    {
+        return (false, $"Error processing file: {ex.Message}", 0);
+    }
+}
+
+
     }
 }

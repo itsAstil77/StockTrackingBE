@@ -135,3 +135,4 @@
 /home/piq2/gitstocktracking/StockTrackingBE/StockTrackingApplication/StockTrackingApi/obj/Debug/net8.0/StockTrackingApi.pdb
 /home/piq2/gitstocktracking/StockTrackingBE/StockTrackingApplication/StockTrackingApi/obj/Debug/net8.0/StockTrackingApi.genruntimeconfig.cache
 /home/piq2/gitstocktracking/StockTrackingBE/StockTrackingApplication/StockTrackingApi/obj/Debug/net8.0/ref/StockTrackingApi.dll
+/home/piq2/gitstocktracking/StockTrackingBE/StockTrackingApplication/StockTrackingApi/bin/Debug/net8.0/Newtonsoft.Json.dll
